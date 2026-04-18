@@ -4,23 +4,14 @@ import { z } from 'zod'
 /*
 import { anthropic } from '@ai-sdk/anthropic'
 */
+import { handleTool } from '@/lib/tools'
 
-const MCP_URL = process.env.NEXT_PUBLIC_APP_URL
-  ? `${process.env.NEXT_PUBLIC_APP_URL}/api/tools`
-  : 'http://localhost:3001/tools'
-
-  async function callTool(toolName: string, params: Record<string, unknown>) {
-  const url = `${MCP_URL}/${toolName}`
-  console.log(`Calling tool: ${url}`, params)
+async function callTool(toolName: string, params: Record<string, unknown>) {
+  console.log(`Calling tool: ${toolName}`, params)
   try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params)
-    })
-    const data = await res.json()
-    console.log(`Tool result ${toolName}:`, JSON.stringify(data).slice(0, 100))
-    return data
+    const result = await handleTool(toolName, params)
+    console.log(`Tool result ${toolName}:`, JSON.stringify(result).slice(0, 100))
+    return result
   } catch (err) {
     console.error(`Tool error ${toolName}:`, err)
     return { error: String(err) }
