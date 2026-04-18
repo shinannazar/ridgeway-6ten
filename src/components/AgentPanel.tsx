@@ -24,6 +24,7 @@ export default function AgentPanel() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const hasStarted = useRef(false)
   const [showBriefing, setShowBriefing] = useState(false)
+  const [briefingKey, setBriefingKey] = useState(0)
 
   useEffect(() => {
     if (hasStarted.current) return
@@ -120,16 +121,23 @@ export default function AgentPanel() {
         <Button
           className="w-full bg-blue-600 hover:bg-blue-700 text-white"
           disabled={isLoading}
-          onClick={() => setShowBriefing(true)}
+          onClick={() => {
+  setBriefingKey(k => k + 1)
+  setShowBriefing(true)
+}}
         >
           📋 Generate Morning Briefing
         </Button>
       </div>
 
       {/* Morning Briefing Modal */}
-      {showBriefing && (
-        <MorningBriefing agentSummary={agentSummary} />
-      )}
+          {showBriefing && (
+  <MorningBriefing
+    key={briefingKey}
+    agentSummary={agentSummary}
+    onClose={() => setShowBriefing(false)}
+  />
+)}
     </div>
   )
 }

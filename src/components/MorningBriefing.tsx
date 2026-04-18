@@ -15,6 +15,8 @@ type Alert = {
 
 type Props = {
   agentSummary: string
+    onClose: () => void
+
 }
 
 const typeLabels: Record<string, string> = {
@@ -27,7 +29,7 @@ const typeLabels: Record<string, string> = {
 export default function MorningBriefing({ agentSummary }: Props) {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(true)
   const supabase = createClient()
 
   const generateBriefing = async () => {
