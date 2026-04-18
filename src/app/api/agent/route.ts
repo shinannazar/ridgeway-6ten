@@ -1,5 +1,5 @@
 import { google } from '@ai-sdk/google'
-import { streamText, tool } from 'ai'
+import { generateText, tool } from 'ai'
 import { z } from 'zod'
 import { handleTool } from '@/lib/tools'
 
@@ -9,10 +9,8 @@ async function callTool(toolName: string, params: Record<string, unknown>) {
   console.log(`Calling tool: ${toolName}`)
   try {
     const result = await handleTool(toolName, params)
-    console.log(`Tool result ${toolName}:`, JSON.stringify(result).slice(0, 100))
     return result
   } catch (err) {
-    console.error(`Tool error ${toolName}:`, err)
     return { error: String(err) }
   }
 }
@@ -20,9 +18,8 @@ async function callTool(toolName: string, params: Record<string, unknown>) {
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json()
-    console.log('Agent called with messages:', messages.length)
 
-    const result = await streamText({
+    const result = await generateText({
       model: google('gemini-2.5-flash'),
       system: `You are the 6:10 Assistant — an AI investigator for Ridgeway Site operations.
 
@@ -55,62 +52,67 @@ RESPONSE STYLE:
 
       tools: {
         get_alerts: tool({
-          description: 'Get security alerts from the night. Filter by zone or severity.',
+          description: 'Get security alerts from the night.',
           parameters: z.object({
-            zone: z.string().optional().describe('Zone name to filter by'),
-            severity: z.string().optional().describe('Severity: low, medium, high')
+            zone: z.string().optional(),
+            severity: z.string().optional()
           }),
           execute: async (params) => callTool('get_alerts', params)
         }),
-
         get_vehicle_paths: tool({
-          description: 'Get vehicle movement paths recorded during the night.',
+          description: 'Get vehicle movement paths.',
           parameters: z.object({
-            zone: z.string().optional().describe('Zone name to filter by')
+            zone: z.string().optional()
           }),
           execute: async (params) => callTool('get_vehicle_paths', params)
         }),
-
         get_badge_events: tool({
-          description: 'Get badge swipe events at access points.',
+          description: 'Get badge swipe events.',
           parameters: z.object({
-            gate: z.string().optional().describe('Gate or access point name'),
-            status: z.string().optional().describe('Filter by status: failed or success')
+            gate: z.string().optional(),
+            status: z.string().optional()
           }),
           execute: async (params) => callTool('get_badge_events', params)
         }),
-
         get_drone_log: tool({
-          description: 'Get drone patrol logs including waypoints and observations.',
+          description: 'Get drone patrol logs.',
           parameters: z.object({
-            zone: z.string().optional().describe('Zone the drone patrolled')
+            zone: z.string().optional()
           }),
           execute: async (params) => callTool('get_drone_log', params)
         }),
-
         correlate_events: tool({
-          description: 'Find all events in the same zone to discover connections.',
+          description: 'Find all events in the same zone.',
           parameters: z.object({
-            zone: z.string().describe('Zone name to correlate events for'),
-            start_time: z.string().optional().describe('Start of time window ISO format'),
-            end_time: z.string().optional().describe('End of time window ISO format')
+            zone: z.string(),
+            start_time: z.string().optional(),
+            end_time: z.string().optional()
           }),
           execute: async (params) => callTool('correlate_events', params)
         }),
-
         flag_for_followup: tool({
-          description: 'Flag an alert as needing follow-up with a reason.',
+          description: 'Flag an alert for follow-up.',
           parameters: z.object({
-            alert_id: z.string().describe('UUID of the alert to flag'),
-            reason: z.string().describe('Reason this alert needs follow-up')
+            alert_id: z.string(),
+            reason: z.string()
           }),
           execute: async (params) => callTool('flag_for_followup', params)
         })
       }
     })
 
-    console.log('streamText completed successfully')
-    return result.toDataStreamResponse()
+    // Return tool steps + final text
+    const toolsUsed = result.steps
+      .flatMap(s => s.toolCalls ?? [])
+      .map(t => t.toolName)
+
+    console.log('Tools used:', toolsUsed)
+
+    return Response.json({
+      text: result.text,
+      toolsUsed,
+      steps: result.steps.length
+    })
 
   } catch (err: unknown) {
     console.error('🔴 Agent error:', err)
