@@ -75,9 +75,10 @@ async function handleTool(name: string, params: any) {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { toolName: string } }
+  { params }: { params: Promise<{ toolName: string }> }
 ) {
+  const { toolName } = await params
   const body = await req.json().catch(() => ({}))
-  const result = await handleTool(params.toolName, body)
+  const result = await handleTool(toolName, body)
   return Response.json(result)
 }
