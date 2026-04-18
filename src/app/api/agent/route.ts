@@ -4,7 +4,11 @@ import { z } from 'zod'
 /*
 import { anthropic } from '@ai-sdk/anthropic'
 */
-const MCP_URL = 'http://localhost:3001/tools'
+
+const MCP_URL = process.env.NODE_ENV === 'production'
+  ? `${process.env.NEXT_PUBLIC_APP_URL}/api/tools`
+  : 'http://localhost:3001/tools'
+
 
 async function callTool(toolName: string, params: Record<string, unknown>) {
   const res = await fetch(`${MCP_URL}/${toolName}`, {
