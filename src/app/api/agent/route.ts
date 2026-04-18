@@ -1,10 +1,8 @@
 import { google } from '@ai-sdk/google'
 import { streamText, tool } from 'ai'
 import { z } from 'zod'
-/*
-import { anthropic } from '@ai-sdk/anthropic'
-*/
 import { handleTool } from '@/lib/tools'
+
 
 async function callTool(toolName: string, params: Record<string, unknown>) {
   console.log(`Calling tool: ${toolName}`, params)
@@ -17,7 +15,6 @@ async function callTool(toolName: string, params: Record<string, unknown>) {
     return { error: String(err) }
   }
 }
-
 
 export async function POST(req: Request) {
   try {
