@@ -115,11 +115,16 @@ RESPONSE STYLE:
       }
     })
 
-    console.log('streamText completed successfully')
-    return result.toDataStreamResponse({
-          sendUsage: false,
-
-    })
+    
+    const toolCalls: string[] = []
+for await (const chunk of result.fullStream) {
+  if (chunk.type === 'tool-call') {
+    toolCalls.push(chunk.toolName)
+    console.log('Tool called:', chunk.toolName)
+  }
+}
+console.log('streamText completed, tools used:', toolCalls)
+return result.toDataStreamResponse()
 
   } catch (err: unknown) {
     console.error('🔴 Agent error:', err)
