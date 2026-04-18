@@ -3,9 +3,10 @@ import { streamText, tool } from 'ai'
 import { z } from 'zod'
 import { handleTool } from '@/lib/tools'
 
+export const maxDuration = 60
 
 async function callTool(toolName: string, params: Record<string, unknown>) {
-  console.log(`Calling tool: ${toolName}`, params)
+  console.log(`Calling tool: ${toolName}`)
   try {
     const result = await handleTool(toolName, params)
     console.log(`Tool result ${toolName}:`, JSON.stringify(result).slice(0, 100))
@@ -19,17 +20,10 @@ async function callTool(toolName: string, params: Record<string, unknown>) {
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json()
-
     console.log('Agent called with messages:', messages.length)
 
     const result = await streamText({
-/*
-      model: anthropic('claude-3-5-sonnet-20241022'),
-
-      */
-
-
-      model: google('gemini-1.5-flash'),
+      model: google('gemini-2.5-flash'),
       system: `You are the 6:10 Assistant — an AI investigator for Ridgeway Site operations.
 
 It is 6:10 AM. Maya, the operations lead, has just arrived. She has less than 2 hours before the morning review with site head Nisha at 8:00 AM.
@@ -57,7 +51,7 @@ RESPONSE STYLE:
 - End with clear action items for the 8 AM review`,
 
       messages,
-      maxSteps: 15,
+      maxSteps: 10,
 
       tools: {
         get_alerts: tool({
@@ -115,16 +109,8 @@ RESPONSE STYLE:
       }
     })
 
-    
-    const toolCalls: string[] = []
-for await (const chunk of result.fullStream) {
-  if (chunk.type === 'tool-call') {
-    toolCalls.push(chunk.toolName)
-    console.log('Tool called:', chunk.toolName)
-  }
-}
-console.log('streamText completed, tools used:', toolCalls)
-return result.toDataStreamResponse()
+    console.log('streamText completed successfully')
+    return result.toDataStreamResponse()
 
   } catch (err: unknown) {
     console.error('🔴 Agent error:', err)
