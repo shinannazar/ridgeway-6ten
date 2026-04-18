@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       */
 
 
-      model: google('gemini-2.5-flash'),
+      model: google('gemini-1.5-flash'),
       system: `You are the 6:10 Assistant — an AI investigator for Ridgeway Site operations.
 
 It is 6:10 AM. Maya, the operations lead, has just arrived. She has less than 2 hours before the morning review with site head Nisha at 8:00 AM.
