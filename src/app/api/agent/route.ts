@@ -94,7 +94,8 @@ RESPONSE STYLE:
           description: 'Flag an alert for follow-up.',
           parameters: z.object({
             alert_id: z.string(),
-            reason: z.string()
+                reason: z.string().optional().default('Flagged for follow-up')
+
           }),
           execute: async (params) => callTool('flag_for_followup', params)
         })

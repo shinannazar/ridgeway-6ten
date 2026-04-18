@@ -64,7 +64,7 @@ export async function handleTool(name: string, params: any) {
         .update({ status: 'needs_followup' })
         .eq('id', params.alert_id)
       if (error) return { error: error.message }
-      return { success: true, message: `Alert ${params.alert_id} flagged: ${params.reason}` }
+      return { success: true, message: `Alert ${params.alert_id} flagged: ${params.reason ?? 'needs review'}` }
     }
 
     default:
